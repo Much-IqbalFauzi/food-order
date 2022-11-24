@@ -1,46 +1,66 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Card from '../UI/Card';
 
 import styles from './AvailableMeals.module.css'
 import MealItem from './MealsItem/MealItem';
 
-const DUMMY_MEALS = [
-    {
-        id: 'm1',
-        name: 'Sushi',
-        description: 'Finest fish and veggies',
-        price: 22.99,
-    },
-    {
-        id: 'm2',
-        name: 'Schnitzel',
-        description: 'A german specialty!',
-        price: 16.5,
-    },
-    {
-        id: 'm3',
-        name: 'Barbecue Burger',
-        description: 'American, raw, meaty',
-        price: 12.99,
-    },
-    {
-        id: 'm4',
-        name: 'Green Bowl',
-        description: 'Healthy...and green...',
-        price: 18.99,
-    },
-];
-
-
 const AvalableMeals = () => {
 
-    const miscMeals = DUMMY_MEALS.map((meals) => (
+    const [meals, setMeals] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [err, setErr] = useState()
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetch('https://react-swapi-a1040-default-rtdb.asia-southeast1.firebasedatabase.app/meals.json')
+            
+            if(!response.ok) {
+                console.info('something wrong')
+                throw new Error('Something wrong!')
+            }
+
+            const data = await response.json()
+
+            const mealsData = []
+
+            for (const key in data) {
+                mealsData.push({...data[key], id: key})
+            }
+            setMeals(mealsData)
+            setIsLoading(false)
+        }
+        
+        fetchData().catch((error) => {
+            setIsLoading(false)
+            setErr(error.message)
+        })
+        
+    }, [])
+
+
+    if (isLoading) {
+        return (
+            <section className={styles['meals-loading']}>
+                <p>Loading. . . </p>
+            </section>
+        )
+    }
+
+    if (err) {
+        return (
+            <section className={styles['meals-loading']}>
+                <p>{err}</p>
+            </section>
+        )
+    }
+
+    const miscMeals = meals.map((meal) => (
         <MealItem 
-            key={meals.id} 
-            id={meals.id} 
-            title={meals.name} 
-            description={meals.description} 
-            price={meals.price} />
+            key={meal.id} 
+            id={meal.id} 
+            title={meal.name} 
+            description={meal.description} 
+            price={meal.price} />
     ))
 
     return (
